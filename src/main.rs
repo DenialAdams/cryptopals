@@ -1,13 +1,8 @@
-use std::io;
-
+#![feature(inclusive_range_syntax)]
 const BASE64: [char; 64] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'];
 
 fn main() {
-  let mut input = String::new();
-  io::stdin().read_line(&mut input).unwrap();
-  input.pop(); // Remove newline
-  let result = hextobase64(&input).unwrap();
-  println!("{}", result);
+  println!("Hello, world!");
 }
 
 fn hextobase64(input: &str) -> Result<String, &'static str> {
@@ -16,7 +11,6 @@ fn hextobase64(input: &str) -> Result<String, &'static str> {
   }
   let mut sum: u32 = 0;
   let mut i = 0;
-  // This is reserving too much, TODO
   let mut new_str = String::with_capacity(input.len());
   for c in input.bytes() {
     let val = hex_to_u8(c)? as u32;
@@ -59,6 +53,93 @@ fn fixed_xor(foo: &str, bar: &str) -> Result<String, &'static str> {
     new_str.push(u8_to_hex_char(xor_val)?);
   }
   Ok(new_str)
+}
+
+fn best_decrypt_single_byte_xor(foo: &str) -> Result<String, &'static str> {
+  let mut best_str = unsafe { std::mem::uninitialized() };
+  let mut best_score = 0.0;
+  for n in 0...255 {
+    let new_str = decrypt_single_byte_xor(foo, n)?;
+    let new_score = etaoin_shrdlu_score(&new_str);
+    println!("{} {} {}", n, new_str, new_score);
+    if new_score > best_score || best_score == 0.0 {
+      best_score = new_score;
+      best_str = new_str;
+    }
+  }
+  Ok(best_str)
+}
+
+fn decrypt_single_byte_xor(foo: &str, key: u8) -> Result<String, &'static str> {
+  let mut new_str = String::with_capacity(foo.len());
+  let mut done_pair = false;
+  let mut val: u8 = 0;
+  for c in foo.bytes() {
+    if !done_pair {
+      val |= hex_to_u8(c)?;
+    } else {
+      val <<= 4;
+      val |= hex_to_u8(c)?;
+      let xor_val = key ^ val;
+      new_str.push(xor_val as char);
+      val = 0;
+    }
+    done_pair = !done_pair;
+  }
+  if done_pair {
+    let xor_val = key ^ val;
+    new_str.push(xor_val as char);
+  }
+  Ok(new_str)
+}
+
+fn etaoin_shrdlu_score(foo: &str) -> f64 {
+  let mut score = 0.0;
+  for c in foo.bytes() {
+    score += match c {
+      b'e' => {
+        12.0
+      },
+      b't' => {
+        11.0
+      },
+      b'a' => {
+        10.0
+      },
+      b'o' => {
+        9.0
+      },
+      b'i' => {
+        8.0
+      },
+      b'n' => {
+        7.0
+      },
+      b's' => {
+        6.0
+      },
+      b'h' => {
+        5.0
+      },
+      b'r' => {
+        4.0
+      },
+      b'd' => {
+        3.0
+      },
+      b'l' => {
+        2.0
+      },
+      b'u' => {
+        1.0
+      },
+      _ => {
+        0.0
+      }
+    }
+  }
+  score /= foo.len() as f64;
+  score
 }
 
 fn u8_to_hex_char(input: u8) -> Result<char, &'static str> {
@@ -198,5 +279,22 @@ mod tests {
       let input2 = "686974207468652062756c6c277320657965";
       let output = "746865206b696420646f6e277420706c6179";
       assert_eq!(fixed_xor(input1, input2).unwrap(), output);
+    }
+
+    #[test]
+    fn decrypt_single_byte_xor_test() {
+      use decrypt_single_byte_xor;
+      let input1 = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+      let key = 88;
+      let output = "Cooking MC's like a pound of bacon";
+      assert_eq!(decrypt_single_byte_xor(input1, key).unwrap(), output);
+    }
+
+    #[test]
+    fn best_decrypt_single_byte_xor_test() {
+      use best_decrypt_single_byte_xor;
+      let input1 = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+      let output = "Cooking MC's like a pound of bacon";
+      assert_eq!(best_decrypt_single_byte_xor(input1).unwrap(), output);
     }
 }
