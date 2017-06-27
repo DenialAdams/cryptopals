@@ -118,6 +118,7 @@ fn decrypt_single_byte_xor(foo: &str, key: u8) -> Result<String, &'static str> {
     }
     done_pair = !done_pair;
   }
+  // TODO UNTESTED
   if done_pair {
     let xor_val = key ^ val;
     new_str.push(xor_val as char);
