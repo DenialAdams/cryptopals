@@ -1,13 +1,13 @@
 use std::io;
 
-const BASE64:           [char; 64] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'];
-const BASE64_REMAINDER: [char; 64] = ['=', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'];
-
+const BASE64: [char; 64] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'];
 
 fn main() {
   let mut input = String::new();
   io::stdin().read_line(&mut input).unwrap();
   input.pop(); // Remove newline
+  let result = hextobase64(&input).unwrap();
+  println!("{}", result);
 }
 
 fn hextobase64(input: &str) -> Result<String, &'static str> {
@@ -19,7 +19,7 @@ fn hextobase64(input: &str) -> Result<String, &'static str> {
   // This is reserving too much, TODO
   let mut new_str = String::with_capacity(input.len());
   for c in input.chars() {
-    let val = hex_to_u32(c)?;
+    let val = hex_to_u8(c)? as u32;
     sum |= val;
     sum <<= 4;
     i += 1;
@@ -36,13 +36,17 @@ fn hextobase64(input: &str) -> Result<String, &'static str> {
     sum <<= 4 * (6 - i);
     new_str.push(BASE64[((sum & 0x0fc0_0000) >> 22) as usize]);
     new_str.push(BASE64[((sum & 0x003f_0000) >> 16) as usize]);
-    new_str.push(BASE64_REMAINDER[((sum & 0x0000_fc00) >> 10) as usize]);
-    new_str.push(BASE64_REMAINDER[((sum & 0x0000_03f0) >> 4) as usize]);
+    if i == 2 {
+      new_str.push('=');
+    } else {
+      new_str.push(BASE64[((sum & 0x0000_fc00) >> 10) as usize]);
+    }
+    new_str.push('=');
   }
   Ok(new_str)
 }
 
-fn hex_to_u32(input: char) -> Result<u32, &'static str> {
+fn hex_to_u8(input: char) -> Result<u8, &'static str> {
   match input {
     '0' => {
       Ok(0)
