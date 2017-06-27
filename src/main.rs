@@ -1,8 +1,13 @@
 #![feature(inclusive_range_syntax)]
+
+use std::fs::File;
+use std::io::{self, BufReader, BufRead};
+
 const BASE64: [char; 64] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'];
 
 fn main() {
-  println!("Hello, world!");
+  let res = best_decrypt_single_byte_xor_file().unwrap();
+  println!("{}", res);
 }
 
 fn hextobase64(input: &str) -> Result<String, &'static str> {
@@ -40,6 +45,24 @@ fn hextobase64(input: &str) -> Result<String, &'static str> {
   Ok(new_str)
 }
 
+fn best_decrypt_single_byte_xor_file() -> Result<String, &'static str> {
+  let f = File::open("4.txt").unwrap();
+  let f = BufReader::new(f);
+
+  let mut best_str = String::from("test");
+  let mut best_score = 0.0;
+  for line in f.lines() {
+    let (new_str, new_score) = best_decrypt_single_byte_xor(&line.unwrap()).unwrap();
+    println!("{}", new_score);
+    if new_score > best_score || best_score == 0.0 {
+      best_score = new_score;
+      best_str = new_str;
+    }
+  }
+
+  Ok(best_str)
+}
+
 fn fixed_xor(foo: &str, bar: &str) -> Result<String, &'static str> {
   if foo.len() != bar.len() {
     return Err("string lengths don't match");
@@ -55,19 +78,18 @@ fn fixed_xor(foo: &str, bar: &str) -> Result<String, &'static str> {
   Ok(new_str)
 }
 
-fn best_decrypt_single_byte_xor(foo: &str) -> Result<String, &'static str> {
-  let mut best_str = unsafe { std::mem::uninitialized() };
+fn best_decrypt_single_byte_xor(foo: &str) -> Result<(String, f64), &'static str> {
+  let mut best_str = String::from("test");
   let mut best_score = 0.0;
   for n in 0...255 {
     let new_str = decrypt_single_byte_xor(foo, n)?;
     let new_score = etaoin_shrdlu_score(&new_str);
-    println!("{} {} {}", n, new_str, new_score);
     if new_score > best_score || best_score == 0.0 {
       best_score = new_score;
       best_str = new_str;
     }
   }
-  Ok(best_str)
+  Ok((best_str, best_score))
 }
 
 fn decrypt_single_byte_xor(foo: &str, key: u8) -> Result<String, &'static str> {
@@ -295,6 +317,6 @@ mod tests {
       use best_decrypt_single_byte_xor;
       let input1 = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
       let output = "Cooking MC's like a pound of bacon";
-      assert_eq!(best_decrypt_single_byte_xor(input1).unwrap(), output);
+      assert_eq!(best_decrypt_single_byte_xor(input1).unwrap().0, output);
     }
 }
