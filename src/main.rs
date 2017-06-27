@@ -10,7 +10,7 @@ fn main() {
   input.pop(); // Remove newline
 }
 
-fn hextobase64(input: String) -> Result<String, &'static str> {
+fn hextobase64(input: &str) -> Result<String, &'static str> {
   if input.len() % 2 != 0 {
     return Err("odd size hex string");
   }
@@ -104,15 +104,15 @@ mod tests {
 
     #[test]
     fn hextobase64_exact_test() {
-      let input = String::from("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d");
-      let output = String::from("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
+      let input = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
+      let output = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
       assert_eq!(hextobase64(input).unwrap(), output);
     }
 
     #[test]
     fn hextobase64_remainder_test() {
-      let input = String::from("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6ddd");
-      let output = String::from("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t3Q==");
+      let input = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6ddd";
+      let output = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t3Q==";
       assert_eq!(hextobase64(input).unwrap(), output);
     }
 }
