@@ -10,6 +10,25 @@ fn main() {
   println!("Hello, world!");
 }
 
+fn hamming_distance(foo: &str, bar: &str) -> usize {
+  let mut total = 0;
+  for it in foo.bytes().zip(bar.bytes()) {
+    let (c, x) = it;
+    let xor = c ^ x;
+    for n in 0..8 {
+      if xor & (0b0000_0001 << n) == 0b0000_0001 << n {
+        total += 1;
+      }
+    }
+  }
+  if foo.len() > bar.len() {
+    total += (foo.len() - bar.len()) * 8;
+  } else if bar.len() > foo.len() {
+    total += (bar.len() - foo.len()) * 8;
+  }
+  total
+}
+
 fn hextobase64(input: &str) -> Result<String, &'static str> {
   if input.len() % 2 != 0 {
     return Err("odd size hex string");
@@ -345,5 +364,23 @@ mod tests {
       let key = "ICE";
       let output = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
       assert_eq!(repeating_key_xor(input, key).unwrap(), output);
+    }
+
+    #[test]
+    fn hamming_distance_test() {
+      use hamming_distance;
+      let input1 = "this is a test";
+      let input2 = "wokka wokka!!!";
+      let output = 37;
+      assert_eq!(hamming_distance(input1, input2), output);
+    }
+
+    #[test]
+    fn hamming_distance_varying_length_test() {
+      use hamming_distance;
+      let input1 = "abcd";
+      let input2 = "abcde";
+      let output = 8;
+      assert_eq!(hamming_distance(input1, input2), output);
     }
 }
