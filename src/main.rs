@@ -1,4 +1,7 @@
 #![feature(inclusive_range_syntax)]
+#![feature(test)]
+
+extern crate test;
 
 use std::fs::File;
 use std::io::{self, BufReader, BufRead};
@@ -308,6 +311,8 @@ fn hex_to_u8(input: u8) -> Result<u8, &'static str> {
 
 #[cfg(test)]
 mod tests {
+    use test::Bencher;
+
     #[test]
     fn hextobase64_exact_test() {
       use hextobase64;
@@ -382,5 +387,11 @@ mod tests {
       let input2 = "abcde";
       let output = 8;
       assert_eq!(hamming_distance(input1, input2), output);
+    }
+
+    #[bench]
+    fn bench_hex_base64_fixed(b: &mut Bencher) {
+      use hextobase64;
+      b.iter(|| hextobase64("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"));
     }
 }
