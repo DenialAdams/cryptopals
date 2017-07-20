@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Richard McCormack <brick@brick.codes>"]
 
 [dependencies]
+itertools = "0.6.1"
 
 [profile.release]
 lto = true
